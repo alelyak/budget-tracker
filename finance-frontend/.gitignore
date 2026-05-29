@@ -1,0 +1,72 @@
+# 1. СЕКРЕТЫ И КОНФИГИ
+
+.env
+.env.local
+.env.*.local
+finance-backend/.env
+finance-frontend/.env
+
+# 2. ЗАВИСИМОСТИ (огромные папки)
+
+node_modules/
+finance-frontend/node_modules/
+finance-backend/vendor/
+
+# 3. СБОРКА И БИНАРНИКИ
+# Go бинарники
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+finance-backend/finance-backend
+finance-backend/__debug_bin
+
+# React сборка
+dist/
+build/
+finance-frontend/build/
+finance-frontend/dist/
+
+
+# 4. IDE И РЕДАКТОРЫ
+
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+
+# 5. ЛОГИ И ВРЕМЕННЫЕ ФАЙЛЫ
+*.log
+*.tmp
+*.temp
+
+
+# 6. GO СПЕЦИФИЧНОЕ
+go.work
+go.work.sum
+finance-backend/go.work
+finance-backend/vendor/
+
+# 7. ТЕСТЫ И ПОКРЫТИЕ
+
+*.out
+coverage.html
+coverage.out
+*.test
+
+# 8. ОС И СИСТЕМНЫЕ ФАЙЛЫ
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp

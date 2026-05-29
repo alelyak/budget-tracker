@@ -1,0 +1,38 @@
+# === Go (backend) ===-
+finance-backend/vendor/
+finance-backend/*.exe
+finance-backend/*.test
+finance-backend/coverage.out
+finance-backend/budget-api
+finance-backend/budget-api.exe
+
+# === React (frontend) ===
+finance-frontend/node_modules/
+finance-frontend/build/
+finance-frontend/.env
+finance-frontend/.env.local
+finance-frontend/package-lock.json  # если хотите, обычно да
+
+# === Общее ===
+.env
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === Тесты (если генерируют бинарники) ===
+tests/*.test
+tests/coverage.out
+tests/.wdm/
+tests/*.png
+tests/screenshots/
