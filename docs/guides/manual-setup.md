@@ -1,44 +1,45 @@
+# Подготовка сервера
 Выбираем скачанный образ Debian 13
-![alt text](../../img/manual-setup/image.png)
+![alt text](../../img/manual-postgres/image.png)
 Выбираем гостевую ОС. Если точной версии нет в списке, выбираем более старую версию, которая есть — например, Debian 12.x
-![alt text](../../img/manual-setup/image-1.png)
+![alt text](../../img/manual-postgres/image-1.png)
 Выбираем название виртуальной машины
-![alt text](../../img/manual-setup/image-2.png)
+![alt text](../../img/manual-postgres/image-2.png)
 Выбираем количество процессоров и ядер. При настройке VM я выделяю не процессоры, а ядра. Для Debian достаточно 2 ядер.
-![alt text](../../img/manual-setup/image-3.png)
+![alt text](../../img/manual-postgres/image-3.png)
 Выбираем RAM
-![alt text](../../img/manual-setup/image-4.png)
+![alt text](../../img/manual-postgres/image-4.png)
 Выбор Network type
 У VMware есть три основных режима, и каждый решает свою задачу:
 1. Bridged (Мост) — ваша виртуальная машина становится полноценным участником вашей домашней сети. Она получает свой собственный IP-адрес от вашего роутера (как ваш ноутбук, телефон или телевизор) .
 2. NAT — Виртуальная машина "прячется" за вашим ноутбуком. Ноутбук выступает в роли маршрутизатора. У Debian будет свой внутренний IP, но снаружи его не видно .
 3. Host-Only (Только хост) — Изолированный полигон. Создается полностью изолированная сеть, в которой есть только ваш ноутбук и виртуальная машина. Нет доступа в интернет, нельзя установить обновления.
-![alt text](../../img/manual-setup/image-5.png)
+![alt text](../../img/manual-postgres/image-5.png)
 настройка контроллера диска
-![alt text](../../img/manual-setup/image-6.png)
+![alt text](../../img/manual-postgres/image-6.png)
 Выбор типа диска. Это способ подключения виртуального жёсткого диска к вашей виртуальной машине. Разные типы — это разные "кабели" и "протоколы", по которым диск общается с процессором. SATA — как в домашних ПК. SCSI — серверный стандарт, быстрый и надёжный
-![alt text](../../img/manual-setup/image-7.png)
+![alt text](../../img/manual-postgres/image-7.png)
 Выьор диска (виртуального)
-![alt text](../../img/manual-setup/image-8.png)
+![alt text](../../img/manual-postgres/image-8.png)
 Выбор размера диска
-![alt text](../../img/manual-setup/image-9.png)
+![alt text](../../img/manual-postgres/image-9.png)
 Запускаем ВМ
 Как поменять расширение.
-![alt text](../../img/manual-setup/image-10.png)
+![alt text](../../img/manual-postgres/image-10.png)
 В меню загрузки выбираем install. Без графической оболочки
 Английский язык в серверных системах — это стандарт де-факто. Сообщения об ошибках на английском легче гуглить, а в production-среде другие языки просто не используются.
-![alt text](../../img/manual-setup/image-11.png)
+![alt text](../../img/manual-postgres/image-11.png)
 Выбор страны влияет на то, откуда Debian будет скачивать пакеты (обновления, дополнительное ПО). Это называется зеркало (mirror) — сервер, с которого вы качаете файлы.
-![alt text](../../img/manual-setup/image-12.png)
+![alt text](../../img/manual-postgres/image-12.png)
 Выбор локали
 Локаль определяет региональные настройки: кодировку, формат даты, валюту, разделитель чисел. Для сервера важнее всего UTF-8 — кодировка, поддерживающая все символы. Стандартная локаль для серверов — en_US.UTF-8, потому что большинство логов и ошибок пишутся на английском, а цифры и даты имеют привычный программистам формат.
-![alt text](../../img/manual-setup/image-13.png)
+![alt text](../../img/manual-postgres/image-13.png)
 Выбор раскладки клавиатуры. Keymap определяет, какой символ появится на экране, когда вы нажимаете клавишу на клавиатуре. все команды Linux, пути к файлам и специальные символы (/, , |, _) ориентированы на английскую раскладку. При русской раскладке специальные символы находятся на других местах, что замедляет работу и приводит к ошибкам. На серверах всегда American English.
-![alt text](../../img/manual-setup/image-14.png)
+![alt text](../../img/manual-postgres/image-14.png)
 Настройка имени хоста - имя сервера в сети alelyak@budget-tracker
-![alt text](../../img/manual-setup/image-15.png)
+![alt text](../../img/manual-postgres/image-15.png)
 Настройка доменного имени. если написать local - будет alelyak@budget-tracker.local
-![alt text](../../img/manual-setup/image-17.png)
+![alt text](../../img/manual-postgres/image-17.png)
 Настройка пароля для суперпользователя. если ничего не вводить root будет заблокирован, а доступ будем получать через sudo
 ![alt text](../../img/manual-setup/image-18.png)
 Выбор full name — это человеко-читаемое имя, используется для отображения в интерфейсах (например, в почте). Username — техническое имя пользователя, используется для входа в систему, в командах, путях к домашней папке (/home/username). Username должно состоять из латиницы и не содержать пробелов.
@@ -91,3 +92,40 @@ GRUB — загрузчика операционной системы.
 Делаем снапшот для сохранения состояния сервера
 ![alt text](../../img/manual-setup/image-35.png)
 ![alt text](../../img/manual-setup/image-36.png)
+# Установка PostgreSQL
+sudo apt update обновляет локальный кэш информации о пакетах. Он НЕ устанавливает и НЕ обновляет программы. Он просто говорит: "Дай мне свежий список того, что есть в репозиториях".
+Обновим пакеты
+![alt text](../../img/manual-postgres/image.png)
+установим Postgresql 16 - его по умолчанию нет в репозиториях
+![alt text](../../img/manual-postgres/image-1.png)
+по умолчанию в 13 debian есть только postgresql 17
+![alt text](../../img/manual-postgres/image-2.png)
+Удалим и установим 16 верисю
+![alt text](../../img/manual-postgres/image-3.png)
+Вот как можно узнать какая версия по умолчанию
+![alt text](../../img/manual-postgres/image-4.png)
+а если нужна другая версия? Устанавливаем пакет с общими файлами PostgreSQL и запускаем скрипт добавления официального репозитория
+![alt text](../../img/manual-postgres/image-5.png)
+и далее обновим
+![alt text](../../img/manual-postgres/image-6.png)
+и установим postresql 16
+![alt text](../../img/manual-postgres/image-7.png)
+проверяем статус
+![alt text](../../img/manual-postgres/image-8.png)
+проверка что сервис включен в автозапуск, что сервис запущен, что порт слушается
+![alt text](../../img/manual-postgres/image-9.png)
+Переключаемся на пользователя postgres (это системный пользователь, под которым работает PostgreSQL) и запускаем интерактивную консоль psql:
+![alt text](../../img/manual-postgres/image-10.png)
+Теперь создадим базу данных, пользователя и дадим ему права И возвращаемся на обычный bash терминал
+![alt text](../../img/manual-postgres/image-11.png)
+Пока не можем поделючиться
+![alt text](../../img/manual-postgres/image-12.png)
+Редактируем файл
+![alt text](../../img/manual-postgres/image-13.png)
+peer меняем на scram-sha
+![alt text](../../img/manual-postgres/image-14.png)
+![alt text](../../img/manual-postgres/image-16.png)
+![alt text](../../img/manual-postgres/image-15.png)
+Теперь можем
+![alt text](../../img/manual-postgres/image-17.png)
+Ошибка была в методе аутентификации peer. Он требует, чтобы имя системного пользователя совпадало с именем пользователя PostgreSQL. А у вас было: системный пользователь postgres и пользователь БД budget_user — они разные, поэтому подключение отклонялось. Метод peer означает: "доверяй только если имя системного пользователя совпадает с именем пользователя БД". Теперь правило говорит: Для локальных подключений — запрашивать пароль (используя безопасный алгоритм SCRAM-SHA-256)
