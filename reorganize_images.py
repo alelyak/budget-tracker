@@ -1,13 +1,16 @@
-
 """
 Скрипт для переноса картинок из docs/guides в img/<имя_папки> в корне проекта
 и обновления путей в .md файлах внутри docs/guides.
 Оригиналы картинок удаляются после успешного копирования.
+Поддерживает:
+- Картинки с любыми именами (image.png, image-1.png, screenshot 2024.png)
+- Ссылки вида ![alt](image.png) в любом .md файле
 """
 
 import re
 import shutil
 from pathlib import Path
+
 
 def main():
     # Получаем путь к корню проекта (где лежит скрипт)
@@ -23,7 +26,8 @@ def main():
         return
 
     # Запрашиваем имя папки у пользователя
-    folder_name = input("📁 Введите имя папки для картинок (например, week-01): ").strip()
+    folder_name = input(
+        "📁 Введите имя папки для картинок (например, manual-setup, manual-postgres): ").strip()
     if not folder_name:
         print("❌ Имя папки не может быть пустым!")
         return
@@ -34,7 +38,8 @@ def main():
     print(f"✅ Создана папка: {target_dir}")
 
     # Расширения картинок
-    image_extensions = {".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".bmp"}
+    image_extensions = {".png", ".jpg", ".jpeg",
+                        ".gif", ".svg", ".webp", ".bmp"}
 
     # Собираем все картинки из папки docs/guides (рекурсивно)
     images = []
@@ -49,9 +54,10 @@ def main():
 
     print(f"\n📸 Найдено картинок: {len(images)}")
 
-    # Копируем картинки в целевую папку и удаляем оригиналы
+    # Копируем картинки в целевую папку
     copied_images = []
     for img_path in images:
+        # Сохраняем оригинальное имя файла (включая пробелы, дефисы и т.д.)
         new_path = target_dir / img_path.name
         try:
             shutil.copy2(img_path, new_path)
@@ -70,9 +76,11 @@ def main():
         print("⚠️ .md файлы не найдены в docs/guides")
         return
 
-    # Относительный путь от .md файла (в docs/guides/...) до папки img/ в корне
-    new_relative_path = f"../../img/{folder_name}"
+    # Относительный путь от .md файла до папки img/ в корне
+    # .md файл в docs/guides/... -> ../../img/...
+    new_relative_path_prefix = f"../../img/{folder_name}"
     files_updated = 0
+    total_replacements = 0
 
     for md_file in md_files:
         with open(md_file, 'r', encoding='utf-8') as f:
@@ -83,14 +91,25 @@ def main():
         # Для каждой картинки обновляем пути в md файле
         for img_path in copied_images:
             img_name = img_path.name
+            # Экранируем специальные символы в имени файла (например, пробелы, точки)
+            escaped_name = re.escape(img_name)
+
             # Ищем Markdown ссылки вида:
             # ![alt](image.png)
+            # ![alt](image-1.png)
             # ![alt](subfolder/image.png)
             # ![alt](./image.png)
-            # ![alt](../other/image.png)
-            pattern = r'(!\[.*?\]\()(.*?/)?(' + re.escape(img_name) + r')(\))'
-            replacement = rf'\g<1>{new_relative_path}/\g<3>\g<4>'
-            content = re.sub(pattern, replacement, content)
+            # НЕ трогаем пути, которые уже ведут в папку img (содержат '/img/')
+            pattern = r'(!\[.*?\]\()(?!\.\./\.\./img/)([^)]*?)(' + \
+                escaped_name + r')(\))'
+
+            # Формируем новый путь
+            replacement = rf'\g<1>{new_relative_path_prefix}/\g<3>\g<4>'
+
+            new_content = re.sub(pattern, replacement, content)
+            if new_content != content:
+                total_replacements += 1
+                content = new_content
 
         if content != original_content:
             with open(md_file, 'w', encoding='utf-8') as f:
@@ -99,16 +118,17 @@ def main():
             files_updated += 1
 
     if files_updated == 0:
-        print("  ⚠️ Ни один .md файл не был обновлён. Возможно, ссылки на картинки уже обновлены или имеют другой формат.")
+        print("  ⚠️ Ни один .md файл не был обновлён.")
     else:
         print(f"\n✅ Обновлено .md файлов: {files_updated}")
+        print(f"✅ Всего замен путей: {total_replacements}")
 
     # Удаляем оригинальные картинки из docs/guides
     print("\n🗑️ Удаление оригинальных картинок из docs/guides...")
     deleted_count = 0
     for img_path in copied_images:
         try:
-            img_path.unlink()  # удаляем файл
+            img_path.unlink()
             print(f"  🗑️ Удалён: {img_path.relative_to(root_dir)}")
             deleted_count += 1
         except Exception as e:
@@ -117,15 +137,15 @@ def main():
     # Удаляем пустые папки, которые могли остаться после удаления картинок
     print("\n🧹 Очистка пустых папок в docs/guides...")
     empty_folders_deleted = 0
-    # Идём снизу вверх, чтобы удалить вложенные пустые папки
     for folder in sorted(guides_dir.rglob("*"), reverse=True):
         if folder.is_dir() and not any(folder.iterdir()):
             try:
                 folder.rmdir()
-                print(f"  🧹 Удалена пустая папка: {folder.relative_to(root_dir)}")
+                print(
+                    f"  🧹 Удалена пустая папка: {folder.relative_to(root_dir)}")
                 empty_folders_deleted += 1
-            except Exception as e:
-                pass  # папка не пуста или ошибка доступа
+            except Exception:
+                pass
 
     print("\n" + "="*50)
     print("🎉 ГОТОВО!")
