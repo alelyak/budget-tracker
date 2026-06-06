@@ -133,3 +133,69 @@ peer меняем на scram-sha
 Теперь можем
 ![alt text](../../img/manual-postgres/image-17.png)
 Ошибка была в методе аутентификации peer. Он требует, чтобы имя системного пользователя совпадало с именем пользователя PostgreSQL. А у вас было: системный пользователь postgres и пользователь БД budget_user — они разные, поэтому подключение отклонялось. Метод peer означает: "доверяй только если имя системного пользователя совпадает с именем пользователя БД". Теперь правило говорит: Для локальных подключений — запрашивать пароль (используя безопасный алгоритм SCRAM-SHA-256)
+# Установка Go
+Go из официального репозитория Debian (через apt) — это почти всегда старая версия, а для разработки обычно нужна актуальная. Установка из официального .tar.gz архива (tarball) — это рекомендованный и стандартный способ для разработчиков
+Скачали архив с актуальной версией Go напрямую с официального сайта.
+![alt text](../../img/manual-go/image.png)
+Распаковали архив в /usr/local. Теперь сама программа Go лежит в папке /usr/local/go. Ключ -xzf означает «распаковать сжатый архив».
+![alt text](../../img/manual-go/image-1.png)
+Добавили путь до исполняемых файлов Go в переменную окружения PATH. Это как сказать системе: «Ищи команду go в папке /usr/local/go/bin».
+![alt text](../../img/manual-go/image-2.png)
+ «Перечитали» новый конфигурационный файл, чтобы изменения вступили в силу прямо сейчас, без перезагрузки.
+![alt text](../../img/manual-go/image-3.png)
+Проверили, что теперь работает актуальная версия Go. Удалили скачанный архив, чтобы не мусорить.
+![alt text](../../img/manual-go/image-4.png)
+Создаем папку для проекта на нашем сервере
+![alt text](../../img/manual-go/image-5.png)
+так как мы создали с рута теперь эта папка принадлежит руту, так что нужно сменить владельца папки
+![alt text](../../img/manual-go/image-6.png)
+Перенос проекта из хост ос в гостевую ос
+На локальном хосте скопируем на сервер папки
+![alt text](../../img/manual-go/image-7.png)
+При копировании фронтенда столкнулась с проблемой, объемная папка node_modules, бесконечное копирование, так что остановила
+![alt text](../../img/manual-go/image-8.png)
+Скопируем только то что нужно
+![alt text](../../img/manual-go/image-9.png)
+проверка
+![alt text](../../img/manual-go/image-10.png)
+Установим nodejs и npm из официального репозитория, чтобы запустить npm install. npm скачает все необходимые библиотеки, перечисленные в файле package.json
+![alt text](../../img/manual-go/image-11.png)
+Запускаем npm install
+![alt text](../../img/manual-go/image-12.png)
+Снова проблема - в проекте версия go 1.25.0 а я скачала 1.24
+![alt text](../../img/manual-go/image-13.png)
+alelyak@budget-tracker:~/budget-tracker/finance-backend$ go mod download - скачаем все зависимости
+alelyak@budget-tracker:~/budget-tracker/finance-backend$ go build -o budget-api ./cmd/api - собрали бэкенд
+меняем env, так как у нас другая БД
+![alt text](../../img/manual-go/image-15.png)
+Ошибка permission denied for schema public означает, что ваш пользователь budget_user успешно подключается к базе данных, но не может создавать в ней таблицы (мигрировать схему). Это проблема прав доступа.
+![alt text](../../img/manual-go/image-16.png)
+Подключимся к PostgreSQL от администратора (postgres) и выдадим нужные права
+-- Переключаемся на нашу базу данных
+\c budget_db;
+
+-- Даём пользователю budget_user ВСЕ права на текущую базу данных
+GRANT ALL PRIVILEGES ON DATABASE budget_db TO budget_user;
+
+-- Даём права на создание объектов в схеме public (самое важное)
+GRANT CREATE ON SCHEMA public TO budget_user;
+
+-- Даём права на использование схемы public
+GRANT USAGE ON SCHEMA public TO budget_user;
+
+-- Даём права на все будущие таблицы в схеме public
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO budget_user;
+![alt text](../../img/manual-go/image-17.png)
+Запустим бэкенд
+![alt text](../../img/manual-go/image-18.png)
+Сейчас наше приложение работает в ручном режиме и занимает окно терминала. Моя задача — сделать так, чтобы оно работало всегда, даже после перезагрузки сервера.
+Скопируем бинарник в opt
+![alt text](../../img/manual-go/image-19.png)
+Создадим systemd сервис
+![alt text](../../img/manual-go/image-20.png)
+вставим этот код
+![alt text](../../img/manual-go/image-21.png)
+Запустим сервис
+![alt text](../../img/manual-go/image-22.png)
+Проверка эндпоинтов
+![alt text](../../img/manual-go/image-23.png)
