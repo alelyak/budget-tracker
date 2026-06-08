@@ -199,3 +199,52 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO budget_user;
 ![alt text](../../img/manual-go/image-22.png)
 Проверка эндпоинтов
 ![alt text](../../img/manual-go/image-23.png)
+
+# Развертывание фронтенда
+На сервере проверьте, есть ли Node.js:
+![alt text](../../img/manual-frontend/image.png)
+Сборка фронтенда
+![alt text](../../img/manual-frontend/image-2.png)
+Установка nginx
+![alt text](../../img/manual-frontend/image-1.png)
+Настройка nginx:
+![alt text](../../img/manual-frontend/image-3.png)
+server {
+    listen 80;
+    server_name _;
+
+    # Папка с собранным фронтендом (внимание: dist, а не build)
+    root /home/alelyak/budget-tracker/finance-frontend/dist;
+    index index.html;
+
+    # Прокси для API-запросов
+    location /api/ {
+        proxy_pass http://localhost:8080/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    # Для всех остальных запросов — отдаём index.html (нужно для React Router)
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+Удаляем дефолтный сайт
+![alt text](../../img/manual-frontend/image-4.png)
+Включаем наш сайт
+![alt text](../../img/manual-frontend/image-5.png)
+Проверяем синтаксис конфигурации
+![alt text](../../img/manual-frontend/image-6.png)
+nginx работает от пользователя www-data, а папка dist принадлежит alelyak и недоступна для чтения.
+![alt text](../../img/manual-frontend/image-7.png)
+при подклбчения с хост ос пытается подключиться к localhost, а сайт нащ на сервере, так что поменяем просто на api
+![alt text](../../img/manual-frontend/image-8.png)
+![alt text](../../img/manual-frontend/image-9.png)
+Удаляем папку dist И запускаем сборку
+![alt text](../../img/manual-frontend/image-10.png)
+Перезапускаем nginx
+![alt text](../../img/manual-frontend/image-11.png)
+Успешно развернули полноценное веб-приложение на собственном сервере
+![alt text](../../img/manual-frontend/image-12.png)
