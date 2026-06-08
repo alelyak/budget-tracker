@@ -80,7 +80,7 @@ SELECT product_id, name, price, ROUND(price-price/1.2, 2) AS tax, ROUND(price/1.
 FROM products
 ORDER BY price_before_tax desc, product_id
 
-# WHERE/WHERE
+# WHERE/WHERE - фильтрация
 Напишите SQL-запрос к таблице products и выведите всю информацию о товарах, цена которых не превышает 100 рублей. Результат отсортируйте по возрастанию id товара.
 
 select product_id, name, price from products where price<=100 order by product_id
@@ -176,3 +176,49 @@ WHERE  action = 'cancel_order'
    and date_part('hour', time) between 12
    and 15
 ORDER BY order_id desc
+
+# Агрегация
+Выведите id всех уникальных пользователей из таблицы user_actions. Результат отсортируйте по возрастанию id.
+
+select distinct user_id from user_actions order by user_id
+
+Примените DISTINCT сразу к двум колонкам таблицы courier_actions и отберите уникальные пары значений courier_id и order_id.
+Результат отсортируйте сначала по возрастанию id курьера, затем по возрастанию id заказа.
+
+select distinct courier_id, order_id from courier_actions order by courier_id, order_id
+
+Посчитайте максимальную и минимальную цены товаров в таблице products. Поля назовите соответственно max_price, min_price.
+
+select max(price) as max_price, min(price) as min_price from products
+
+Однако важно учитывать один нюанс: запрос со звёздочкой возвращает количество вообще всех записей в таблице, а запрос с указанием столбца — количество тех записей, где в заданном столбце значения не являются NULL. Как вы помните, в таблице users у некоторых пользователей не были указаны их даты рождения.
+Посчитайте в одном запросе количество всех записей в таблице и количество только тех записей, для которых в колонке birth_date указана дата рождения.
+Колонку с общим числом записей назовите dates, а колонку с записями без пропусков — dates_not_null.
+
+select count(*) as dates, count(birth_date) as dates_not_null from users
+
+Посчитайте количество всех значений в колонке user_id в таблице user_actions, а также количество уникальных значений в этой колонке (т.е. количество уникальных пользователей сервиса).
+Колонку с первым полученным значением назовите users, а колонку со вторым — unique_users.
+
+select count(user_id) as users, count(distinct user_id) as unique_users from user_actions
+
+Посчитайте количество курьеров женского пола в таблице couriers. Полученный столбец с одним значением назовите couriers.
+
+select count(courier_id) as couriers from couriers where sex='female'
+
+Рассчитайте время, когда были совершены первая и последняя доставки заказов в таблице courier_actions.
+Колонку с временем первой доставки назовите first_delivery, а колонку с временем последней — last_delivery.
+
+select min(time) as first_delivery, max(time) as last_delivery from courier_actions where action='deliver_order'
+
+Представьте, что один из пользователей сервиса сделал заказ, в который вошли одна пачка сухариков, одна пачка чипсов и один энергетический напиток. Посчитайте стоимость такого заказа.
+Колонку с рассчитанной стоимостью заказа назовите order_price.
+Для расчётов используйте таблицу products.
+
+select sum(price) as order_price from products where name like '%сухарик%'
+   or name like '%чипс%'
+   or name like '%энергетический напиток%'
+
+Посчитайте количество заказов в таблице orders с девятью и более товарами. Для этого воспользуйтесь функцией array_length, отфильтруйте данные по количеству товаров в заказе и проведите агрегацию. Полученный столбец назовите orders.
+
+select count(order_id) as orders from orders where array_length(product_ids, 1)>=9
