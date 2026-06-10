@@ -1,4 +1,4 @@
-пример: select * from courier_actions order by order_id desc limit 20
+пример: select \* from courier_actions order by order_id desc limit 20
 сортировка: desc - по убыванию, без desc - по возрастанию
 limit - первые 20
 
@@ -17,19 +17,19 @@ ORDER BY -- сортировка результирующей таблицы
 LIMIT -- ограничение количества выводимых записей
 
 Приоритеты выполнения операций:
-умножение и деление (* и /)
+умножение и деление (\* и /)
 сложение и вычитание (+ и -)
 операторы сравнения (=, !=, >, <, >=, <=)
 NOT
 AND
 OR
 
-
 При составлении SQL-запросов колонкам в результирующей таблице можно присваивать любые другие имена (их ещё называют «алиасами»). Это можно делать с помощью оператора AS:
 SELECT name AS new_name
 FROM table
 
 # функции
+
 Используя операторы SELECT, FROM, ORDER BY и LIMIT, а также функцию LENGTH, определите товар с самым длинным названием в таблице products. Выведите его наименование, длину наименования в символах, а также цену этого товара. Колонку с длиной наименования в символах назовите name_length.
 
 select name, length(name) as name_length, price from products order by name_length desc limit 1
@@ -59,16 +59,16 @@ select courier_id, coalesce(date_part('year', birth_date)::varchar, 'unknown') a
 
 Давайте представим, что по какой-то необъяснимой причине мы вдруг решили в одночасье повысить цену всех товаров в таблице products на 5%. Выведите id и наименования всех товаров, их старую и новую цену. Колонку со старой ценой назовите old_price, а колонку с новой — new_price. Результат отсортируйте сначала по убыванию новой цены, затем по возрастанию id товара.
 
-select product_id, name, price as old_price, price*1.05 as new_price from products order by new_price desc, product_id
+select product_id, name, price as old_price, price\*1.05 as new_price from products order by new_price desc, product_id
 
 Вновь, как и в прошлом задании, повысьте цену всех товаров на 5%, только теперь к колонке с новой ценой примените функцию ROUND. Выведите id и наименования товаров, их старую цену, а также новую цену с округлением. Новую цену округлите до одного знака после запятой, но тип данных не меняйте.Результат отсортируйте сначала по убыванию новой цены, затем по возрастанию id товара.
 
-select product_id, name, price as old_price, round(price*1.05, 1) as new_price from products order by new_price desc, product_id
+select product_id, name, price as old_price, round(price\*1.05, 1) as new_price from products order by new_price desc, product_id
 
 Повысьте цену на 5% только на те товары, цена которых превышает 100 рублей. Цену остальных товаров оставьте без изменений. Также не повышайте цену на икру, которая и так стоит 800 рублей. Выведите id и наименования всех товаров, их старую и новую цену. Цену округлять не нужно. Результат отсортируйте сначала по убыванию новой цены, затем по возрастанию id товара.
 
 select product_id, name, price as old_price,
-case when price>100 and name!='икра' then price*1.05
+case when price>100 and name!='икра' then price\*1.05
 else price
 end as new_price
 from products
@@ -81,6 +81,7 @@ FROM products
 ORDER BY price_before_tax desc, product_id
 
 # WHERE/WHERE - фильтрация
+
 Напишите SQL-запрос к таблице products и выведите всю информацию о товарах, цена которых не превышает 100 рублей. Результат отсортируйте по возрастанию id товара.
 
 select product_id, name, price from products where price<=100 order by product_id
@@ -112,7 +113,7 @@ select product_id, name from products where name like '%чай%' order by produc
 Выберите из таблицы products id и наименования только тех товаров, названия которых начинаются на букву «с» и содержат только одно слово.
 Результат должен быть отсортирован по возрастанию id товара.
 
-select product_id, name from products where name like 'с%' and name not like '% %'  order by product_id
+select product_id, name from products where name like 'с%' and name not like '% %' order by product_id
 
 Составьте SQL-запрос, который выбирает из таблицы products все чаи стоимостью больше 60 рублей и вычисляет для них цену со скидкой 25%.
 Скидку в % менеджер попросил указать в отдельном столбце в формате текста, то есть вот так: «25%» (без кавычек). Столбцы со скидкой и новой ценой назовите соответственно discount и new_price.
@@ -120,14 +121,14 @@ select product_id, name from products where name like 'с%' and name not like '%
 Результат должен быть отсортирован по возрастанию id товара.
 
 SELECT product_id,
-       name,
-       price,
-       '25%' as discount,
-       price*0.75 as new_price
-FROM   products
-WHERE  name like '%чай%'
-   and price > 60
-   and name not like 'чайный гриб'
+name,
+price,
+'25%' as discount,
+price\*0.75 as new_price
+FROM products
+WHERE name like '%чай%'
+and price > 60
+and name not like 'чайный гриб'
 ORDER BY product_id
 
 Из таблицы user_actions выведите всю информацию о действиях пользователей с id 170, 200 и 230 за период с 25 августа по 4 сентября 2022 года включительно. Результат отсортируйте по убыванию id заказа — то есть от самых поздних действий к самым первым.
@@ -150,7 +151,6 @@ select user_id, birth_date from users where sex='male' and birth_date is not nul
 
 select order_id, time from courier_actions where courier_id=100 and action='deliver_order' order by order_id desc limit 10
 
-
 Из таблицы user_actions получите id всех заказов, сделанных пользователями сервиса в августе 2022 года.
 Результат отсортируйте по возрастанию id заказа.
 
@@ -165,19 +165,20 @@ select courier_id from couriers where date_part('year', birth_date) between 1990
 Результат отсортируйте по убыванию id отменённых заказов.
 
 SELECT user_id,
-       order_id,
-       action,
-       time
-FROM   user_actions
-WHERE  action = 'cancel_order'
-   and date_part('year', time) = 2022
-   and date_part('month', time) = 8
-   and date_part('dow', time) = 3
-   and date_part('hour', time) between 12
-   and 15
+order_id,
+action,
+time
+FROM user_actions
+WHERE action = 'cancel_order'
+and date_part('year', time) = 2022
+and date_part('month', time) = 8
+and date_part('dow', time) = 3
+and date_part('hour', time) between 12
+and 15
 ORDER BY order_id desc
 
 # Агрегация
+
 Выведите id всех уникальных пользователей из таблицы user_actions. Результат отсортируйте по возрастанию id.
 
 select distinct user_id from user_actions order by user_id
@@ -195,7 +196,7 @@ select max(price) as max_price, min(price) as min_price from products
 Посчитайте в одном запросе количество всех записей в таблице и количество только тех записей, для которых в колонке birth_date указана дата рождения.
 Колонку с общим числом записей назовите dates, а колонку с записями без пропусков — dates_not_null.
 
-select count(*) as dates, count(birth_date) as dates_not_null from users
+select count(\*) as dates, count(birth_date) as dates_not_null from users
 
 Посчитайте количество всех значений в колонке user_id в таблице user_actions, а также количество уникальных значений в этой колонке (т.е. количество уникальных пользователей сервиса).
 Колонку с первым полученным значением назовите users, а колонку со вторым — unique_users.
@@ -216,9 +217,62 @@ select min(time) as first_delivery, max(time) as last_delivery from courier_acti
 Для расчётов используйте таблицу products.
 
 select sum(price) as order_price from products where name like '%сухарик%'
-   or name like '%чипс%'
-   or name like '%энергетический напиток%'
+or name like '%чипс%'
+or name like '%энергетический напиток%'
 
 Посчитайте количество заказов в таблице orders с девятью и более товарами. Для этого воспользуйтесь функцией array_length, отфильтруйте данные по количеству товаров в заказе и проведите агрегацию. Полученный столбец назовите orders.
 
 select count(order_id) as orders from orders where array_length(product_ids, 1)>=9
+
+Функция AGE возвращает разницу между двумя значениями, представленными в формате TIMESTAMP. При этом из первого значения вычитается второе, а сама разница получается в формате INTERVAL:
+SELECT AGE('2022-12-12', '2021-11-10')
+Результат:
+397 days, 0:00:00
+
+На самом деле текущей дате соответствует значение current_date, которое можно указывать в качестве аргумента функции AGE:
+SELECT AGE(current_date, '2021-11-10')
+
+чтобы результат отображался не в виде количества дней, а в более удобном формате, можно переводить результат вычислений в тип VARCHAR:
+SELECT AGE(current_date, '2021-11-10')::VARCHAR
+Результат:
+1 year 1 mon 2 days
+
+С помощью функции AGE и агрегирующей функции рассчитайте возраст самого молодого курьера мужского пола в таблице couriers.
+Возраст выразите количеством лет, месяцев и дней (как в примере выше), переведя его в тип VARCHAR.
+В качестве даты, относительно которой считать возраст курьеров, используйте свою текущую дату (либо не указывайте её на месте первого аргумента, как показано в примерах).
+Полученную колонку со значением возраста назовите min_age.
+
+select min(age(current_date, birth_date)::varchar) as min_age from couriers where sex='male'
+
+Посчитайте стоимость заказа, в котором будут три пачки сухариков, две пачки чипсов и один энергетический напиток. Колонку с рассчитанной стоимостью заказа назовите order_price.
+Для расчётов используйте таблицу products.
+
+select sum(
+case
+when name like '%чипсы%' then price*2
+when name like '%сухарики%' then price*3
+when name like '%энергетический%' then price
+else 0
+end
+) as order_price from products
+
+Рассчитайте среднюю цену товаров в таблице products, в названиях которых присутствуют слова «чай» или «кофе». Любым известным способом исключите из расчёта товары, содержащие в названии «иван-чай» или «чайный гриб».
+Среднюю цену округлите до двух знаков после запятой. Столбец с полученным значением назовите avg_price.
+Поле в результирующей таблице: avg_price
+
+SELECT ROUND(AVG(price), 2) AS avg_price
+FROM products
+WHERE (name LIKE '%чай%' OR name LIKE '%кофе%')
+AND name NOT LIKE '%иван-чай%'
+AND name NOT LIKE '%чайный гриб%';
+
+Воспользуйтесь функцией AGE и рассчитайте разницу в возрасте между самым старым и самым молодым пользователями женского пола в таблице users.
+Разницу в возрасте выразите количеством лет, месяцев и дней, переведя её в тип VARCHAR.
+Колонку с посчитанным значением назовите age_diff.
+
+select age(max(birth_date), min(birth_date))::varchar as age_diff from users where sex='female'
+
+Рассчитайте среднее количество товаров в заказах из таблицы orders, которые пользователи оформляли по выходным дням (суббота и воскресенье) в течение всего времени работы сервиса.
+Полученное значение округлите до двух знаков после запятой. Колонку с ним назовите avg_order_size.
+
+select round(avg(array_length(product_ids, 1)), 2) as avg_order_size from orders where date_part('dow', creation_time)=6 or date_part('dow', creation_time)=0

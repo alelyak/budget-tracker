@@ -205,7 +205,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO budget_user;
 ![alt text](../../img/manual-frontend/image.png)
 Сборка фронтенда
 ![alt text](../../img/manual-frontend/image-2.png)
-Установка nginx
+Установка nginx - sudo apt install -y nginx
 ![alt text](../../img/manual-frontend/image-1.png)
 Настройка nginx:
 ![alt text](../../img/manual-frontend/image-3.png)
