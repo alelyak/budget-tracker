@@ -276,3 +276,44 @@ select age(max(birth_date), min(birth_date))::varchar as age_diff from users whe
 Полученное значение округлите до двух знаков после запятой. Колонку с ним назовите avg_order_size.
 
 select round(avg(array_length(product_ids, 1)), 2) as avg_order_size from orders where date_part('dow', creation_time)=6 or date_part('dow', creation_time)=0
+
+На основе данных в таблице user_actions посчитайте количество уникальных пользователей сервиса, количество уникальных заказов, поделите одно на другое и выясните, сколько заказов приходится на одного пользователя.
+В результирующей таблице отразите все три значения — поля назовите соответственно unique_users, unique_orders, orders_per_user.
+Показатель числа заказов на пользователя округлите до двух знаков после запятой.
+
+select count(distinct user_id) as unique_users, count(distinct order_id) as unique_orders,  round(count(distinct order_id)::decimal/count(distinct user_id)::decimal, 2)  as orders_per_user from user_actions
+
+Если после агрегирующей функции указать ключевое слово FILTER и поместить в скобках некоторое условие condition после WHERE, то агрегирующей функции на вход будут поданы только те строки, для которых условие фильтра окажется истинным. Преимущество такой записи в том, что она позволяет проводить расчёты без промежуточных запросов с условиями в блоке WHERE.
+
+SELECT AVG(price) FILTER (WHERE category = 'рыба') AS avg_fish_price
+FROM table
+
+Посчитайте, сколько пользователей никогда не отменяли свой заказ. Для этого из общего числа всех уникальных пользователей отнимите число уникальных пользователей, которые хотя бы раз отменяли заказ. Подумайте, какое условие необходимо указать в FILTER, чтобы получить корректный результат.
+Полученный столбец назовите users_count.
+
+select count(distinct user_id)-count(distinct user_id) filter (where  action='cancel_order') as users_count from user_actions
+
+Посчитайте общее количество заказов в таблице orders, количество заказов с пятью и более товарами и найдите долю заказов с пятью и более товарами в общем количестве заказов.
+В результирующей таблице отразите все три значения — поля назовите соответственно orders, large_orders, large_orders_share.
+Долю заказов с пятью и более товарами в общем количестве товаров округлите до двух знаков после запятой.
+
+select count(order_id) as orders,
+count(order_id) filter (where array_length(product_ids, 1)>=5) as large_orders,
+round(count(order_id) filter (where array_length(product_ids, 1)>=5)::decimal / count(order_id), 2)  as large_orders_share
+from orders
+
+В этом уроке мы:
+
+Познакомились с ключевым словом DISTINCT.
+Разобрались, как работают агрегирующие функции SUM, MIN, MAX, COUNT, AVG.
+Узнали разницу между COUNT(*) и COUNT(column).
+Научились совмещать фильтрацию и агрегацию в одном запросе.
+Поработали с массивами и узнали, что делает функция array_length.
+Узнали ещё больше про даты и время и познакомились с функцией AGE.
+Затронули более продвинутую тему — агрегатные выражения с фильтрацией.
+Известные нам на текущий момент ключевые слова и порядок их написания в запросе:
+SELECT     -- перечисление полей результирующей таблицы
+FROM       -- указание источника данных
+WHERE      -- фильтрация данных
+ORDER BY   -- сортировка результирующей таблицы
+LIMIT      -- ограничение количества выводимых записей
