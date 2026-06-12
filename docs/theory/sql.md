@@ -281,7 +281,7 @@ select round(avg(array_length(product_ids, 1)), 2) as avg_order_size from orders
 В результирующей таблице отразите все три значения — поля назовите соответственно unique_users, unique_orders, orders_per_user.
 Показатель числа заказов на пользователя округлите до двух знаков после запятой.
 
-select count(distinct user_id) as unique_users, count(distinct order_id) as unique_orders,  round(count(distinct order_id)::decimal/count(distinct user_id)::decimal, 2)  as orders_per_user from user_actions
+select count(distinct user_id) as unique_users, count(distinct order_id) as unique_orders, round(count(distinct order_id)::decimal/count(distinct user_id)::decimal, 2) as orders_per_user from user_actions
 
 Если после агрегирующей функции указать ключевое слово FILTER и поместить в скобках некоторое условие condition после WHERE, то агрегирующей функции на вход будут поданы только те строки, для которых условие фильтра окажется истинным. Преимущество такой записи в том, что она позволяет проводить расчёты без промежуточных запросов с условиями в блоке WHERE.
 
@@ -291,7 +291,7 @@ FROM table
 Посчитайте, сколько пользователей никогда не отменяли свой заказ. Для этого из общего числа всех уникальных пользователей отнимите число уникальных пользователей, которые хотя бы раз отменяли заказ. Подумайте, какое условие необходимо указать в FILTER, чтобы получить корректный результат.
 Полученный столбец назовите users_count.
 
-select count(distinct user_id)-count(distinct user_id) filter (where  action='cancel_order') as users_count from user_actions
+select count(distinct user_id)-count(distinct user_id) filter (where action='cancel_order') as users_count from user_actions
 
 Посчитайте общее количество заказов в таблице orders, количество заказов с пятью и более товарами и найдите долю заказов с пятью и более товарами в общем количестве заказов.
 В результирующей таблице отразите все три значения — поля назовите соответственно orders, large_orders, large_orders_share.
@@ -299,21 +299,134 @@ select count(distinct user_id)-count(distinct user_id) filter (where  action='ca
 
 select count(order_id) as orders,
 count(order_id) filter (where array_length(product_ids, 1)>=5) as large_orders,
-round(count(order_id) filter (where array_length(product_ids, 1)>=5)::decimal / count(order_id), 2)  as large_orders_share
+round(count(order_id) filter (where array_length(product_ids, 1)>=5)::decimal / count(order_id), 2) as large_orders_share
 from orders
 
 В этом уроке мы:
 
 Познакомились с ключевым словом DISTINCT.
 Разобрались, как работают агрегирующие функции SUM, MIN, MAX, COUNT, AVG.
-Узнали разницу между COUNT(*) и COUNT(column).
+Узнали разницу между COUNT(\*) и COUNT(column).
 Научились совмещать фильтрацию и агрегацию в одном запросе.
 Поработали с массивами и узнали, что делает функция array_length.
 Узнали ещё больше про даты и время и познакомились с функцией AGE.
 Затронули более продвинутую тему — агрегатные выражения с фильтрацией.
 Известные нам на текущий момент ключевые слова и порядок их написания в запросе:
-SELECT     -- перечисление полей результирующей таблицы
-FROM       -- указание источника данных
-WHERE      -- фильтрация данных
-ORDER BY   -- сортировка результирующей таблицы
-LIMIT      -- ограничение количества выводимых записей
+SELECT -- перечисление полей результирующей таблицы
+FROM -- указание источника данных
+WHERE -- фильтрация данных
+ORDER BY -- сортировка результирующей таблицы
+LIMIT -- ограничение количества выводимых записей
+
+Таким образом, порядок записи ключевых слов выглядит так:
+
+SELECT
+FROM
+WHERE
+GROUP BY
+ORDER BY
+LIMIT
+
+# Группировка
+
+В то же время порядок выполнения операторов в запросе следующий:
+
+Сначала выполняется оператор FROM — происходит выбор нужной таблицы.
+Далее WHERE — отфильтровываются строки, соответствующие условию.
+Потом GROUP BY — строки объединяются в группы и производится агрегация.
+Затем SELECT — отбираются указанные столбцы.
+Потом ORDER BY — производится сортировка результирующей таблицы.
+И в самом конце LIMIT — ограничивается количество выводимых записей.
+
+С помощью оператора GROUP BY посчитайте количество курьеров мужского и женского пола в таблице couriers.
+Новую колонку с числом курьеров назовите couriers_count.
+Результат отсортируйте по этой колонке по возрастанию.
+
+select sex, count(distinct courier_id) as couriers_count
+from couriers
+group by sex
+order by couriers_count
+
+Посчитайте количество созданных и отменённых заказов в таблице user_actions.
+Новую колонку с числом заказов назовите orders_count.
+Результат отсортируйте по числу заказов по возрастанию.
+
+select action, count(distinct order_id) as orders_count
+from user_actions
+group by action
+order by orders_count
+
+Используя группировку и функцию DATE_TRUNC, приведите все даты к началу месяца и посчитайте, сколько заказов было сделано в каждом из них.
+Расчёты проведите по таблице orders. Колонку с усечённой датой назовите month, колонку с количеством заказов — orders_count.
+Результат отсортируйте по месяцам — по возрастанию.
+
+select date_trunc('month', creation_time) as month, count(order_id) as orders_count
+from orders
+group by month
+order by month
+
+Используя группировку и функцию DATE_TRUNC, приведите все даты к началу месяца и посчитайте, сколько заказов было сделано и сколько было отменено в каждом из них.
+В этот раз расчёты проведите по таблице user_actions. Колонку с усечённой датой назовите month, колонку с количеством заказов — orders_count.
+Результат отсортируйте сначала по месяцам — по возрастанию, затем по типу действия — тоже по возрастанию.
+
+select date_trunc('month', time) as month, action, count(order_id) as orders_count
+from user_actions
+group by month, action
+order by month, action
+
+По данным в таблице users посчитайте максимальный порядковый номер месяца среди всех порядковых номеров месяцев рождения пользователей сервиса. С помощью группировки проведите расчёты отдельно в двух группах — для пользователей мужского и женского пола.
+Новую колонку с максимальным порядковым номером месяца рождения в группах назовите max_month. Преобразуйте значения в новой колонке в формат INTEGER, чтобы порядковый номер был выражен целым числом.
+Результат отсортируйте по колонке с полом пользователей.
+
+select sex, max(date_part('month', birth_date))::integer as max_month
+from users
+group by sex
+order by sex
+
+По данным в таблице users посчитайте порядковый номер месяца рождения самого молодого пользователя сервиса. С помощью группировки проведите расчёты отдельно в двух группах — для пользователей мужского и женского пола.
+Новую колонку c порядковым номером месяца рождения самого молодого пользователя в группах назовите max_month. Преобразуйте значения в новой колонке в формат INTEGER, чтобы порядковый номер был выражен целым числом.
+Результат отсортируйте по колонке с полом пользователей.
+
+select sex, date_part('month', max(birth_date))::integer as max_month
+from users
+group by sex
+order by sex
+
+Посчитайте максимальный возраст пользователей мужского и женского пола в таблице users. Возраст измерьте числом полных лет.
+Новую колонку с возрастом назовите max_age. Преобразуйте значения в новой колонке в формат INTEGER, чтобы возраст был выражен целым числом.
+Результат отсортируйте по новой колонке по возрастанию возраста.
+
+select sex, date_part('year', age(min(birth_date)))::integer as max_age
+FROM users
+GROUP BY sex
+ORDER BY sex
+
+Разбейте пользователей из таблицы users на группы по возрасту (возраст по-прежнему измеряем числом полных лет) и посчитайте количество пользователей каждого возраста.
+Колонку с возрастом назовите age, а колонку с числом пользователей — users_count. Преобразуйте значения в колонке с возрастом в формат INTEGER, чтобы возраст был выражен целым числом.
+Результат отсортируйте по колонке с возрастом по возрастанию.
+
+select date_part('year', age(birth_date))::integer as age, count(user_id) as users_count
+FROM users
+GROUP BY date_part('year', age(birth_date))::integer
+ORDER BY age
+
+Вновь разбейте пользователей из таблицы users на группы по возрасту (возраст по-прежнему измеряем количеством полных лет), только теперь добавьте в группировку ещё и пол пользователя. Затем посчитайте количество пользователей в каждой половозрастной группе.
+Все NULL значения в колонке birth_date заранее отфильтруйте с помощью WHERE.
+Колонку с возрастом назовите age, а колонку с числом пользователей — users_count, имя колонки с полом оставьте без изменений. Преобразуйте значения в колонке с возрастом в формат INTEGER, чтобы возраст был выражен целым числом.
+Отсортируйте полученную таблицу сначала по колонке с возрастом по возрастанию, затем по колонке с полом — тоже по возрастанию.
+
+select date_part('year', age(birth_date))::integer as age, sex, count(user_id) as users_count
+FROM users
+where birth_date is not null
+GROUP BY date_part('year', age(birth_date))::integer, sex
+ORDER BY age, sex
+
+Посчитайте количество товаров в каждом заказе, примените к этим значениям группировку и рассчитайте количество заказов в каждой группе за неделю с 29 августа по 4 сентября 2022 года включительно. Для расчётов используйте данные из таблицы orders.
+Выведите две колонки: размер заказа и число заказов такого размера за указанный период. Колонки назовите соответственно order_size и orders_count.
+Результат отсортируйте по возрастанию размера заказа.
+
+select array_length(product_ids, 1) as order_size, count(order_id) as orders_count
+from orders
+where creation_time between '2022-08-29 00:00:00' and '2022-09-04 23:59:59'
+group by order_size
+order by order_size
