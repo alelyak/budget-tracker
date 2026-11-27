@@ -36,3 +36,18 @@ tests/coverage.out
 tests/.wdm/
 tests/*.png
 tests/screenshots/
+
+# Python testing
+.venv-tests/
+.pytest_cache/
+__pycache__/
+*.pyc
+
+# Selenium
+.selenium-cache/
+
+# Node.js
+node_modules/
+
+# Environment variables
+.env
