@@ -30,7 +30,6 @@ def test_switch_registration_form(browser):
 
 
 def test_dashboard_displays_amounts(browser, account):
-    # Small amounts avoid locale-specific thousands separators.
     today = date.today()
     transaction(account, 'Зарплата', 800, today)
     transaction(account, 'Продукты', 300, today)
